@@ -1,0 +1,15 @@
+# Configuración del workflow de Dataform
+# Este archivo es referenciado por terraform/main.tf al crear el workflow.
+
+# TODO: Configurar las schedule transformations
+# 
+# schedule:
+#   - name: "daily_master"
+#     cron: "0 2 * * *"  # todos los días a las 02:00
+#     tags: ["master"]
+#     serviceAccount: "nelson-acosta-ob-bqo-sa@<project>.iam.gserviceaccount.com"
+# 
+#   - name: "monthly_full"
+#     cron: "0 2 1 * *"  # día 1 de cada mes a las 02:00
+#     tags: ["all"]
+#     serviceAccount: "nelson-acosta-ob-bqo-sa@<project>.iam.gserviceaccount.com"

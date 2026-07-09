@@ -1,0 +1,5 @@
+{
+  "defaultDataset": "nelson_acosta_ob_processed",
+  "defaultLocation": "us-east1",
+  "_comment": "Config estándar de Dataform. NO modificar a menos que sepas qué hacés."
+}

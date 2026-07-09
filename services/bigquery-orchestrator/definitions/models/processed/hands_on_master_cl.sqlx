@@ -1,0 +1,138 @@
+-- TODO: Query principal que arma la tabla de features para ML.
+-- 
+-- Esta es la query MÁS IMPORTANTE del componente Data.
+-- Su output (tabla hands_on_master_cl) alimenta directamente al modelo ML.
+--
+-- PASOS TÍPICOS:
+--   1. JOIN entre las 6 fuentes vía customer_id (hub: customer_management)
+--   2. Definir el TARGET: ¿compró ticket en los próximos 30 días?
+--   3. Feature engineering: recencia, frecuencia, monto, segmentación, etc.
+--   4. Filtrar a un período histórico (ej. últimos 12 meses)
+--   5. Limpiar nulos críticos
+--
+-- OUTPUT ESPERADO:
+--   - 1 fila por customer_id
+--   - Columna target binaria (0/1)
+--   - ~30-50 features numéricas y categóricas
+
+config {
+  type: "table",
+  schema: "nelson_acosta_ob_processed",
+  name: "hands_on_master_cl",
+  description: "Master table with features for propension model",
+  tags: ["master", "ml-input"]
+}
+
+WITH 
+
+-- TODO: Subquery 1 - Bookings históricos (últimos 12 meses)
+bookings_history AS (
+  SELECT
+    customer_id,
+    COUNT(*)                              AS bookings_count_12m,
+    SUM(ticket_amount)                    AS bookings_amount_12m,
+    AVG(ticket_amount)                    AS bookings_avg_amount_12m,
+    MAX(booking_date)                     AS last_booking_date,
+    DATE_DIFF(CURRENT_DATE(), MAX(booking_date), DAY) AS days_since_last_booking,
+    COUNT(DISTINCT origin || '-' || destination) AS unique_routes_12m
+  FROM ${ref("dmt_commercial_us")}
+  WHERE booking_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH)
+    AND status IN ('confirmed', 'flown')
+  GROUP BY customer_id
+),
+
+-- TODO: Subquery 2 - GA4 engagement (últimos 90 días)
+ga4_engagement AS (
+  SELECT
+    cm.customer_id,
+    COUNT(DISTINCT ga4.event_id)        AS ga4_events_90d,
+    COUNT(DISTINCT ga4.session_id)      AS ga4_sessions_90d,
+    SUM(CASE WHEN ga4.event_name = 'view_item' THEN 1 ELSE 0 END)      AS view_item_90d,
+    SUM(CASE WHEN ga4.event_name = 'add_to_cart' THEN 1 ELSE 0 END)    AS add_to_cart_90d,
+    SUM(CASE WHEN ga4.event_name = 'begin_checkout' THEN 1 ELSE 0 END) AS begin_checkout_90d
+  FROM ${ref("ebiz_google_analytics_4")} ga4
+  INNER JOIN ${ref("customer_management")} cm
+    ON ga4.user_pseudo_id = cm.web_user_id
+  WHERE ga4.event_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY)
+  GROUP BY cm.customer_id
+),
+
+-- TODO: Subquery 3 - Customer segmentation features
+customer_features AS (
+  SELECT
+    customer_id,
+    rfm_segment,
+    ltv,
+    preferred_cabin,
+    loyalty_tier
+  FROM ${ref("dmt_customer_us")}
+),
+
+-- TODO: Subquery 4 - Marketing engagement (últimos 6 meses)
+marketing_engagement AS (
+  SELECT
+    customer_id,
+    COUNT(*)                              AS campaigns_received_6m,
+    SUM(CASE WHEN opened THEN 1 ELSE 0 END)   AS campaigns_opened_6m,
+    SUM(CASE WHEN clicked THEN 1 ELSE 0 END)  AS campaigns_clicked_6m,
+    SUM(CASE WHEN redeemed THEN 1 ELSE 0 END) AS campaigns_redeemed_6m
+  FROM ${ref("customer_marketing")}
+  WHERE campaign_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH)
+  GROUP BY customer_id
+),
+
+-- TODO: TARGET - ¿compró en los próximos 30 días? (ventana de 30 días desde "snapshot_date")
+target_definition AS (
+  SELECT
+    customer_id,
+    MAX(CASE 
+      WHEN booking_date BETWEEN '2024-01-01' AND DATE_ADD('2024-01-01', INTERVAL 30 DAY)
+      THEN 1 ELSE 0 
+    END) AS target_purchase_30d
+  FROM ${ref("dmt_commercial_us")}
+  GROUP BY customer_id
+)
+
+SELECT
+  -- Keys
+  cm.customer_id,
+  
+  -- TODO: Features de bookings
+  COALESCE(bh.bookings_count_12m, 0)         AS bookings_count_12m,
+  COALESCE(bh.bookings_amount_12m, 0)        AS bookings_amount_12m,
+  COALESCE(bh.bookings_avg_amount_12m, 0)    AS bookings_avg_amount_12m,
+  COALESCE(bh.days_since_last_booking, 999)  AS days_since_last_booking,
+  COALESCE(bh.unique_routes_12m, 0)          AS unique_routes_12m,
+  
+  -- TODO: Features de GA4
+  COALESCE(ge.ga4_events_90d, 0)             AS ga4_events_90d,
+  COALESCE(ge.ga4_sessions_90d, 0)           AS ga4_sessions_90d,
+  COALESCE(ge.view_item_90d, 0)              AS view_item_90d,
+  COALESCE(ge.add_to_cart_90d, 0)            AS add_to_cart_90d,
+  COALESCE(ge.begin_checkout_90d, 0)         AS begin_checkout_90d,
+  
+  -- TODO: Features de segmentación
+  cf.rfm_segment,
+  cf.ltv,
+  cf.preferred_cabin,
+  cf.loyalty_tier,
+  
+  -- TODO: Features de marketing
+  COALESCE(me.campaigns_received_6m, 0)       AS campaigns_received_6m,
+  COALESCE(me.campaigns_opened_6m, 0)         AS campaigns_opened_6m,
+  COALESCE(me.campaigns_clicked_6m, 0)        AS campaigns_clicked_6m,
+  COALESCE(me.campaigns_redeemed_6m, 0)       AS campaigns_redeemed_6m,
+  
+  -- TARGET
+  COALESCE(td.target_purchase_30d, 0)         AS target_purchase_30d
+
+FROM ${ref("customer_management")} cm
+
+LEFT JOIN bookings_history      bh ON cm.customer_id = bh.customer_id
+LEFT JOIN ga4_engagement        ge ON cm.customer_id = ge.customer_id
+LEFT JOIN customer_features     cf ON cm.customer_id = cf.customer_id
+LEFT JOIN marketing_engagement  me ON cm.customer_id = me.customer_id
+LEFT JOIN target_definition     td ON cm.customer_id = td.customer_id
+
+-- TODO: Agregar filtros finales (ej. clientes con al menos 1 evento GA4 en 90d)
+-- WHERE ge.ga4_events_90d > 0

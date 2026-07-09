@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+api:
+  routes:
+    - path: "/chat"
+      method: "POST"
+    - path: "/healthz"
+      method: "GET"
+    - path: "/readyz"
+      method: "GET"
+
+# TODO: Configurar las URLs reales de tu ambiente
+
+# Light RAG endpoint (después de deployar el módulo de Terraform)
+light_rag:
+  url: "https://PLACEHOLDER-light-rag-url"
+  timeout: 30
+  max_results: 5
+
+# GCP
+gcp:
+  project_id: "nelson-acosta-ob-dev"
+  region: "us-east1"
+  predictions_table: "nelson_acosta_ob_processed.customer_predictions"
+
+# LLM (vía GenAI Gateway de LATAM)
+llm:
+  gateway_url: "https://genai.cosmos.dev.appslatam.com"
+  model: "gpt-4"
+  temperature: 0.0
+
+# Logging
+logging:
+  level: "INFO"
+  format: "json"

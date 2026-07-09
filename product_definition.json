@@ -1,0 +1,45 @@
+{
+  "_comment": "Ejemplo de product_definition.json. Se genera automáticamente al crear el producto en Cosmos Catalog. Lo listamos acá como referencia de qué se espera.",
+  "product_name": "nelson-acosta-ob",
+  "team": "aiops",
+  "domain": "aiops",
+  "owner_email": "nelson.acosta@latam.com",
+  "created_at": "2026-07-09T00:00:00Z",
+  "environments": ["dev", "prod"],
+  "project_mapping": {
+    "dev": "nelson-acosta-ob-dev",
+    "prod": "nelson-acosta-ob-prod"
+  },
+  "services": [
+    {
+      "name": "infrastructure",
+      "type": "terraform",
+      "gitlab_repo": "nelson-acosta-ob-infrastructure"
+    },
+    {
+      "name": "bigquery-orchestrator",
+      "type": "dataform",
+      "gitlab_repo": "nelson-acosta-ob-bigquery-orchestrator"
+    },
+    {
+      "name": "file-ingestor-ga4",
+      "type": "ingestor",
+      "gitlab_repo": "nelson-acosta-ob-file-ingestor-ga4"
+    },
+    {
+      "name": "ml-propension",
+      "type": "vertex-pipelines",
+      "gitlab_repo": "nelson-acosta-ob-ml-propension"
+    },
+    {
+      "name": "chatbot-backend",
+      "type": "genai-bundle",
+      "gitlab_repo": "nelson-acosta-ob-chatbot-backend"
+    },
+    {
+      "name": "chatbot-frontend",
+      "type": "frontend",
+      "gitlab_repo": "nelson-acosta-ob-chatbot-frontend"
+    }
+  ]
+}

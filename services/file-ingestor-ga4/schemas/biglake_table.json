@@ -1,0 +1,11 @@
+{
+  "_comment": "Schema de la tabla raw de GA4. Copiar el contenido real de new-hire-integration/assets/biglake_table.json",
+  "_instructions": "1. Pedile a tu Buddy el archivo real 2. Pegá el contenido acá 3. NO modifiques el schema, es contractual",
+  "_example": {
+    "fields": [
+      { "name": "event_date", "type": "DATE", "mode": "NULLABLE" },
+      { "name": "event_name", "type": "STRING", "mode": "NULLABLE" },
+      { "name": "user_pseudo_id", "type": "STRING", "mode": "NULLABLE" }
+    ]
+  }
+}

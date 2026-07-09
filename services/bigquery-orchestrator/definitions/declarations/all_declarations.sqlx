@@ -1,0 +1,99 @@
+# TODO: Declaraciones de las 6 fuentes de datos externas.
+# 
+# En Dataform, `config { type: "declaration" }` sirve para declarar tablas
+# que NO maneja Dataform (es decir, no las crea ni las modifica), pero
+# que queremos referenciar con `ref()` y verlas en el DAG.
+#
+# Las 6 fuentes del hands-on son:
+
+config { type: "declaration" }
+
+-- TODO: Reemplazar con la declaración real de cada tabla
+-- Formato: SELECT * FROM `<project>.<dataset>.<table>` WHERE FALSE
+-- (el WHERE FALSE es para que Dataform no intente materializar nada)
+
+# ─────────────────────────────────────────────────────────────────────────
+-- 1. Google Analytics 4
+# ─────────────────────────────────────────────────────────────────────────
+-- TODO: Reemplazar con SELECT real
+SELECT
+  CAST(NULL AS STRING) AS event_name,
+  CAST(NULL AS DATE)   AS event_date
+FROM `ebiz-data-prod.ebiz_google_analytics_4.events_*`  -- ejemplo
+WHERE FALSE
+
+UNION ALL
+
+# ─────────────────────────────────────────────────────────────────────────
+-- 2. Comercial (dmt_commercial_us)
+# ─────────────────────────────────────────────────────────────────────────
+-- TODO
+SELECT
+  CAST(NULL AS STRING) AS booking_id,
+  CAST(NULL AS STRING) AS customer_id
+FROM `dlakedomain-prod-20dl.dmt_commercial_us.bookings`  -- ejemplo
+WHERE FALSE
+
+UNION ALL
+
+# ─────────────────────────────────────────────────────────────────────────
+-- 3. Referencia (dmt_reference_us)
+# ─────────────────────────────────────────────────────────────────────────
+-- TODO
+SELECT
+  CAST(NULL AS STRING) AS route_id,
+  CAST(NULL AS STRING) AS origin_iata
+FROM `dlakedomain-prod-20dl.dmt_reference_us.routes`  -- ejemplo
+WHERE FALSE
+
+UNION ALL
+
+# ─────────────────────────────────────────────────────────────────────────
+-- 4. Customer Segmentación (dmt_customer_us)
+# ─────────────────────────────────────────────────────────────────────────
+-- TODO
+SELECT
+  CAST(NULL AS STRING) AS customer_id,
+  CAST(NULL AS STRING) AS rfm_segment
+FROM `cus-data-prod.dmt_customer_us.customers`  -- ejemplo
+WHERE FALSE
+
+UNION ALL
+
+# ─────────────────────────────────────────────────────────────────────────
+-- 5. Customer Management (customer_management)
+# ─────────────────────────────────────────────────────────────────────────
+-- TODO
+SELECT
+  CAST(NULL AS STRING) AS customer_id,
+  CAST(NULL AS STRING) AS loyalty_id
+FROM `cus-data-prod.customer_management.master`  -- ejemplo
+WHERE FALSE
+
+UNION ALL
+
+# ─────────────────────────────────────────────────────────────────────────
+-- 6. Customer Marketing (customer_marketing)
+# ─────────────────────────────────────────────────────────────────────────
+-- TODO
+SELECT
+  CAST(NULL AS STRING) AS customer_id,
+  CAST(NULL AS STRING) AS campaign_id
+FROM `cus-data-prod.customer_marketing.events`  -- ejemplo
+WHERE FALSE
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# NOTA IMPORTANTE
+# ─────────────────────────────────────────────────────────────────────────
+# 
+# - Cada tabla declarada DEBE tener su propio archivo .sqlx en declarations/
+#   (mirá los archivos ebiz_google_analytics_4.sqlx, dmt_commercial_us.sqlx, etc.)
+#
+# - Este archivo (all_declarations.sqlx) es una REFERENCIA de cómo se ve
+#   cada declaración junta. En la práctica, cada declaración va en su
+#   propio archivo para mejor organización.
+#
+# - Después de declarar, podés usar:
+#     ${ref("ebiz_google_analytics_4")}
+#   en cualquier query del proyecto.
