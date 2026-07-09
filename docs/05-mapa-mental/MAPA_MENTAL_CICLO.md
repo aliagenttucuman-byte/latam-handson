@@ -4,6 +4,19 @@
 
 ---
 
+## Diagramas visuales (draw.io)
+
+Para una comprensión más rápida, hay 2 diagramas draw.io en `./diagramas/`:
+
+| Diagrama | Qué muestra | Cuándo usarlo |
+|---|---|---|
+| **[`como-funciona-cosmos.png`](./diagramas/como-funciona-cosmos.png)** | Ciclo universal + 3 capas de infra + flujo del hands-on + regla de oro | Para explicarle a Carmen, Buddy o Staff qué entendiste de Cosmos (5 min de conversación) |
+| **[`arquitectura-3-componentes-v2.png`](./diagramas/arquitectura-3-componentes-v2.png)** | Arquitectura técnica de Data + ML + GenAI con sus conexiones + leyenda de 7 puntos | Para vos cuando estés escribiendo código del hands-on (mapa de qué hace cada caja) |
+
+También hay versiones SVG (vectoriales) y `.drawio` editables en la misma carpeta.
+
+---
+
 ## 1. El ciclo universal (5 fases)
 
 Cualquier problema que se resuelve con datos sigue este ciclo. Tu pedido de onboarding lo recorrió completo.
